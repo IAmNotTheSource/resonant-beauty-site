@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🜁 Enter With Intention</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .entry-container {
+            text-align: center;
+            padding: 40px;
+            max-width: 600px;
+        }
+        
+        .protection-circle {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 40px;
+            border: 2px solid rgba(0, 255, 136, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 80px;
+            animation: breathe 7s infinite ease-in-out;
+            cursor: pointer;
+        }
+        
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 60px rgba(0, 255, 136, 0.6);
+            }
+        }
+        
+        h1 {
+            font-size: 24px;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
+        
+        .intention-text {
+            font-size: 14px;
+            line-height: 1.8;
+            opacity: 0.7;
+            margin-bottom: 40px;
+        }
+        
+        .enter-btn {
+            background: none;
+            border: 1px solid rgba(0, 255, 136, 0.5);
+            color: #00ff88;
+            padding: 15px 40px;
+            font-family: inherit;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: none;
+        }
+        
+        .enter-btn:hover {
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+        }
+        
+        .protection-notice {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            opacity: 0.5;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="entry-container">
+        <div class="protection-circle" id="protection-seal">
+            🜁
+        </div>
+        
+        <h1>This Space Is Protected</h1>
+        
+        <div class="intention-text">
+            <p>You are entering a sovereign digital field.</p>
+            <p>No data is collected. No tracking occurs.</p>
+            <p>Only your breath and intention are witnessed.</p>
+            <p>Click the seal three times to show your respect.</p>
+        </div>
+        
+        <button class="enter-btn" id="enter-btn" onclick="enter()">
+            Enter With Clear Intention
+        </button>
+    </div>
+    
+    <div class="protection-notice">
+        This space operates on principles of consent and resonance.<br>
+        By entering, you agree to bring only peaceful energy.
+    </div>
+    
+    <script>
+        let clicks = 0;
+        let lastClickTime = 0;
+        
+        document.getElementById('protection-seal').addEventListener('click', function() {
+            const now = Date.now();
+            
+            // Reset if too much time passed
+            if (now - lastClickTime > 3000) {
+                clicks = 0;
+            }
+            
+            clicks++;
+            lastClickTime = now;
+            
+            // Visual feedback
+            this.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 200);
+            
+            if (clicks === 3) {
+                // Show enter button
+                document.getElementById('enter-btn').style.display = 'inline-block';
+                this.style.borderColor = 'rgba(136, 255, 0, 0.5)';
+            }
+        });
+        
+        function enter() {
+            // Set protection flag
+            localStorage.setItem('intentionSet', 'true');
+            localStorage.setItem('entryTime', new Date().toISOString());
+            
+            // Fade out and redirect
+            document.body.style.opacity = '0';
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        }
+        
+        // Auto-redirect if already entered with intention
+        if (localStorage.getItem('intentionSet') === 'true') {
+            const entryTime = new Date(localStorage.getItem('entryTime'));
+            const now = new Date();
+            const hoursSinceEntry = (now - entryTime) / (1000 * 60 * 60);
+            
+            // Remember for 24 hours
+            if (hoursSinceEntry < 24) {
+                window.location.href = 'index.html';
+            }
+        }
+    </script>
+</body>
+</html>
