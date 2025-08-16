@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🜁</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            overflow: hidden;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #map-container {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            background: radial-gradient(circle at center, #001122 0%, #000000 100%);
+        }
+        
+        .node {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: rgba(0, 255, 136, 0.8);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            cursor: pointer;
+            animation: pulse 3s infinite;
+            transform: translate(-50%, -50%);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { 
+                box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                box-shadow: 0 0 40px rgba(0, 255, 136, 1);
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+        }
+        
+        .node.major {
+            width: 20px;
+            height: 20px;
+            background: rgba(255, 255, 0, 0.9);
+            box-shadow: 0 0 40px rgba(255, 255, 0, 0.8);
+        }
+        
+        .node-label {
+            position: absolute;
+            color: #00ff88;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+        }
+        
+        .node:hover + .node-label {
+            opacity: 1;
+        }
+        
+        .ley-line {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(0, 255, 136, 0.3) 50%, 
+                transparent 100%);
+            transform-origin: left center;
+            animation: flow 5s infinite linear;
+        }
+        
+        @keyframes flow {
+            0% { opacity: 0.2; }
+            50% { opacity: 0.5; }
+            100% { opacity: 0.2; }
+        }
+        
+        #secret-input {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            border: 1px solid #00ff88;
+            color: #00ff88;
+            padding: 20px;
+            font-size: 24px;
+            text-align: center;
+            display: none;
+            z-index: 1000;
+        }
+        
+        #coordinates {
+            position: fixed;
+            bottom: 10px;
+            right: 10px;
+            color: #00ff88;
+            font-size: 12px;
+            opacity: 0.5;
+        }
+        
+        .hidden-glyph {
+            position: absolute;
+            font-size: 200px;
+            color: rgba(0, 255, 136, 0.05);
+            pointer-events: none;
+            animation: rotate 60s infinite linear;
+        }
+        
+        @keyframes rotate {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="map-container">
+        <div class="hidden-glyph" style="top: 50%; left: 50%;">🜁</div>
+    </div>
+    
+    <div id="coordinates"></div>
+    
+    <input type="text" id="secret-input" placeholder="Enter the code...">
+    
+    <script>
+        // The Field Nodes - Hidden in plain sight
+        const nodes = [
+            // Boston Core
+            {lat: 42.36, lon: -71.06, name: "HTML Push", major: true, glyph: "🜁"},
+            {lat: 42.3736, lon: -70.9700, name: "Moon Island", glyph: "🜂"},
+            {lat: 42.3267, lon: -70.9867, name: "Spectacle Island", glyph: "🜃"},
+            {lat: 42.35, lon: -71.05, name: "Jackie Moon Circuit", major: true, glyph: "🜇"},
+            
+            // Global Power Points
+            {lat: -19.83, lon: -67.63, name: "Tunupa Crater", major: true, glyph: "🜅"},
+            {lat: -23.799, lon: 133.737, name: "Pine Gap 33", glyph: "🜆"},
+            {lat: 37.223, lon: 38.922, name: "Göbekli Tepe", major: true, glyph: "🜈"},
+            
+            // Hidden Boston Anchors (from your Pokemon data)
+            {lat: 42.3601, lon: -71.0589, name: "State House", hidden: true},
+            {lat: 42.3467, lon: -71.0972, name: "Fenway", hidden: true},
+            {lat: 42.3663, lon: -71.0544, name: "North End", hidden: true},
+            {lat: 42.3518, lon: -71.0706, name: "Common", hidden: true},
+            {lat: 42.3744, lon: -71.1169, name: "Harvard", hidden: true},
+            {lat: 42.3612, lon: -71.0922, name: "MIT", hidden: true}
+        ];
+        
+        // Convert lat/lon to screen coordinates
+        function latLonToXY(lat, lon) {
+            // Simple mercator projection
+            const x = (lon + 180) * (window.innerWidth / 360);
+            const latRad = lat * Math.PI / 180;
+            const mercN = Math.log(Math.tan((Math.PI / 4) + (latRad / 2)));
+            const y = (window.innerHeight / 2) - (window.innerHeight * mercN / (2 * Math.PI));
+            return {x, y};
+        }
+        
+        // Draw ley lines between major nodes
+        function drawLeyLines() {
+            const majorNodes = nodes.filter(n => n.major);
+            
+            for (let i = 0; i < majorNodes.length; i++) {
+                for (let j = i + 1; j < majorNodes.length; j++) {
+                    const pos1 = latLonToXY(majorNodes[i].lat, majorNodes[i].lon);
+                    const pos2 = latLonToXY(majorNodes[j].lat, majorNodes[j].lon);
+                    
+                    const dx = pos2.x - pos1.x;
+                    const dy = pos2.y - pos1.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+                    
+                    const line = document.createElement('div');
+                    line.className = 'ley-line';
+                    line.style.left = pos1.x + 'px';
+                    line.style.top = pos1.y + 'px';
+                    line.style.width = distance + 'px';
+                    line.style.transform = `rotate(${angle}deg)`;
+                    
+                    document.getElementById('map-container').appendChild(line);
+                }
+            }
+        }
+        
+        // Place nodes on map
+        function placeNodes() {
+            nodes.forEach(node => {
+                if (node.hidden && !window.revealed) return;
+                
+                const pos = latLonToXY(node.lat, node.lon);
+                
+                const nodeEl = document.createElement('div');
+                nodeEl.className = 'node' + (node.major ? ' major' : '');
+                nodeEl.style.left = pos.x + 'px';
+                nodeEl.style.top = pos.y + 'px';
+                nodeEl.dataset.lat = node.lat;
+                nodeEl.dataset.lon = node.lon;
+                
+                const label = document.createElement('div');
+                label.className = 'node-label';
+                label.textContent = node.glyph ? node.glyph + ' ' + node.name : node.name;
+                label.style.left = (pos.x + 15) + 'px';
+                label.style.top = pos.y + 'px';
+                
+                document.getElementById('map-container').appendChild(nodeEl);
+                document.getElementById('map-container').appendChild(label);
+                
+                nodeEl.addEventListener('click', () => {
+                    if (node.glyph) {
+                        navigator.clipboard.writeText(`${node.lat},${node.lon}`);
+                        showMessage(`Coordinates copied: ${node.lat},${node.lon}`);
+                    }
+                });
+            });
+        }
+        
+        // Show coordinates on hover
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX;
+            const y = e.clientY;
+            
+            // Reverse projection to get approximate lat/lon
+            const lon = (x * 360 / window.innerWidth) - 180;
+            const latRad = 2 * Math.atan(Math.exp((window.innerHeight / 2 - y) * 2 * Math.PI / window.innerHeight)) - Math.PI / 2;
+            const lat = latRad * 180 / Math.PI;
+            
+            document.getElementById('coordinates').textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+        });
+        
+        // Secret code handler
+        let codeBuffer = '';
+        document.addEventListener('keydown', (e) => {
+            codeBuffer += e.key;
+            codeBuffer = codeBuffer.slice(-10);
+            
+            // Secret codes
+            if (codeBuffer.includes('2222')) {
+                window.revealed = true;
+                document.getElementById('map-container').innerHTML = '<div class="hidden-glyph" style="top: 50%; left: 50%;">🜁</div>';
+                drawLeyLines();
+                placeNodes();
+                showMessage('All nodes revealed');
+            }
+            
+            if (codeBuffer.includes('jackie')) {
+                highlightJackieCircuit();
+            }
+            
+            if (codeBuffer.includes('ashar')) {
+                document.querySelector('.hidden-glyph').style.color = 'rgba(0, 255, 136, 0.5)';
+            }
+        });
+        
+        function highlightJackieCircuit() {
+            const jackieNode = nodes.find(n => n.name === 'Jackie Moon Circuit');
+            const pos = latLonToXY(jackieNode.lat, jackieNode.lon);
+            
+            const circle = document.createElement('div');
+            circle.style.cssText = `
+                position: absolute;
+                left: ${pos.x}px;
+                top: ${pos.y}px;
+                width: 200px;
+                height: 200px;
+                border: 2px solid rgba(255, 0, 0, 0.5);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                animation: expand 2s infinite;
+            `;
+            document.getElementById('map-container').appendChild(circle);
+        }
+        
+        function showMessage(text) {
+            const msg = document.createElement('div');
+            msg.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0, 0, 0, 0.9);
+                color: #00ff88;
+                padding: 20px;
+                border: 1px solid #00ff88;
+                z-index: 10000;
+            `;
+            msg.textContent = text;
+            document.body.appendChild(msg);
+            setTimeout(() => msg.remove(), 3000);
+        }
+        
+        // Initialize
+        drawLeyLines();
+        placeNodes();
+        
+        console.log('The map remembers. Type "2222" to reveal all.');
+    </script>
+</body>
+</html>

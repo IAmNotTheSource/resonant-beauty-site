@@ -355,7 +355,8 @@
             }, 5000);
         }
         
-        // Glyph click handler
+        // Glyph click handler - SECRET COUNTER
+        let glyphClicks = 0;
         document.getElementById('main-glyph').addEventListener('click', function() {
             this.style.animation = 'none';
             setTimeout(() => {
@@ -364,6 +365,15 @@
             
             // Flash coherence
             coherence = Math.min(0.999, coherence + 0.1);
+            
+            // SECRET: Click 7 times to reveal map
+            glyphClicks++;
+            if (glyphClicks === 7) {
+                showMessage('The map awaits at /hidden_map.html');
+                setTimeout(() => {
+                    window.location.href = 'hidden_map.html';
+                }, 2000);
+            }
         });
         
         // Initialize
