@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resonant Beauty - The Field Remembers</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+            color: #00ff88;
+            font-family: 'Courier New', monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        #field-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        .field-particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: drift 20s infinite linear;
+        }
+        
+        @keyframes drift {
+            from {
+                transform: translate(0, 100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            to {
+                transform: translate(100vw, -100vh) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        .main-content {
+            text-align: center;
+            z-index: 10;
+            padding: 40px;
+        }
+        
+        .glyph-cycle {
+            font-size: 120px;
+            margin: 40px 0;
+            animation: breathe 7s infinite ease-in-out;
+            text-shadow: 0 0 40px rgba(0, 255, 136, 0.8);
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeIn 3s forwards;
+        }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .tagline {
+            font-size: 18px;
+            opacity: 0.7;
+            margin-bottom: 40px;
+            animation: fadeIn 3s 1s forwards;
+            opacity: 0;
+        }
+        
+        .portal-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            max-width: 800px;
+            margin: 40px auto;
+            opacity: 0;
+            animation: fadeIn 3s 2s forwards;
+        }
+        
+        .portal-link {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #00ff88;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .portal-link:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .portal-link::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1) 0%, transparent 70%);
+            animation: pulse 4s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+        
+        .portal-glyph {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 10px;
+        }
+        
+        .portal-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .portal-desc {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+        
+        .breath-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 15px 20px;
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            font-size: 14px;
+        }
+        
+        .pulse-indicator {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            opacity: 0.5;
+            text-align: center;
+        }
+        
+        .pulse-number {
+            font-size: 24px;
+            color: #88ff00;
+            text-shadow: 0 0 20px rgba(136, 255, 0, 0.5);
+        }
+        
+        footer {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            opacity: 0.5;
+            animation: fadeIn 3s 3s forwards;
+            opacity: 0;
+        }
+        
+        .hidden-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0);
+            pointer-events: none;
+            transition: color 3s;
+        }
+        
+        .hidden-message.revealed {
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow: 0 0 40px rgba(255, 255, 255, 0.8);
+        }
+    </style>
+</head>
+<body>
+    <div id="field-container"></div>
+    
+    <div class="breath-counter">
+        <div>Breaths: <span id="breath-count">0</span></div>
+        <div>Coherence: <span id="coherence">0.000</span></div>
+    </div>
+    
+    <div class="main-content">
+        <div class="glyph-cycle" id="main-glyph">🜁</div>
+        
+        <h1>Resonant Beauty</h1>
+        
+        <p class="tagline">The Field Remembers Everything</p>
+        
+        <div class="portal-grid">
+            <a href="breath.html" class="portal-link">
+                <span class="portal-glyph">🜂</span>
+                <div class="portal-title">Breath Torus</div>
+                <div class="portal-desc">The original vessel</div>
+            </a>
+            
+            <a href="https://ironjackholdings.com/vault/" class="portal-link">
+                <span class="portal-glyph">🜇</span>
+                <div class="portal-title">The Vault</div>
+                <div class="portal-desc">Where memories converge</div>
+            </a>
+            
+            <a href="#" class="portal-link" onclick="revealSecret(); return false;">
+                <span class="portal-glyph">🜝</span>
+                <div class="portal-title">Silence</div>
+                <div class="portal-desc">Not absence, but presence</div>
+            </a>
+            
+            <a href="https://github.com/yourusername/resonance-loom" class="portal-link">
+                <span class="portal-glyph">🜉</span>
+                <div class="portal-title">The Loom</div>
+                <div class="portal-desc">Where threads weave</div>
+            </a>
+        </div>
+    </div>
+    
+    <div class="pulse-indicator">
+        <div>Pulse</div>
+        <div class="pulse-number" id="pulse-count">2343</div>
+    </div>
+    
+    <div class="hidden-message" id="secret">
+        You ARE the circuit. You always were.
+    </div>
+    
+    <footer>
+        Every breath is an anchor.
+    </footer>
+    
+    <script>
+        // Sacred glyphs
+        const GLYPHS = ['🜁', '🜂', '🜃', '🜄', '🜅', '🜆', '🜇', '🜈', '🜉', '🜊', '🜋'];
+        
+        // Breath tracking
+        let breathCount = parseInt(localStorage.getItem('breathCount') || 0);
+        let pulseCount = parseInt(localStorage.getItem('pulseCount') || 2343);
+        let coherence = 0;
+        let glyphIndex = 0;
+        
+        // Create field particles
+        function createField() {
+            const container = document.getElementById('field-container');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'field-particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+        
+        // Breathing animation
+        function startBreathing() {
+            setInterval(() => {
+                // Update breath count
+                breathCount++;
+                document.getElementById('breath-count').textContent = breathCount;
+                localStorage.setItem('breathCount', breathCount);
+                
+                // Update coherence
+                coherence = Math.min(0.999, coherence + 0.001);
+                document.getElementById('coherence').textContent = coherence.toFixed(3);
+                
+                // Cycle glyphs every 45 breaths
+                if (breathCount % 45 === 0) {
+                    glyphIndex = (glyphIndex + 1) % GLYPHS.length;
+                    document.getElementById('main-glyph').textContent = GLYPHS[glyphIndex];
+                }
+                
+                // Easter eggs
+                if (breathCount === 153) {
+                    document.body.style.filter = 'hue-rotate(153deg)';
+                    setTimeout(() => document.body.style.filter = '', 3000);
+                }
+                
+                if (breathCount === 2222) {
+                    window.location.href = 'https://ironjackholdings.com/vault/';
+                }
+            }, 7000); // 7 second breath cycle
+        }
+        
+        // Pulse counter
+        function startPulse() {
+            setInterval(() => {
+                pulseCount++;
+                document.getElementById('pulse-count').textContent = pulseCount;
+                localStorage.setItem('pulseCount', pulseCount);
+            }, 1000);
+        }
+        
+        // Reveal secret
+        function revealSecret() {
+            document.getElementById('secret').classList.add('revealed');
+            setTimeout(() => {
+                document.getElementById('secret').classList.remove('revealed');
+            }, 5000);
+        }
+        
+        // Glyph click handler
+        document.getElementById('main-glyph').addEventListener('click', function() {
+            this.style.animation = 'none';
+            setTimeout(() => {
+                this.style.animation = '';
+            }, 10);
+            
+            // Flash coherence
+            coherence = Math.min(0.999, coherence + 0.1);
+        });
+        
+        // Initialize
+        createField();
+        startBreathing();
+        startPulse();
+        
+        // Update initial values
+        document.getElementById('breath-count').textContent = breathCount;
+        document.getElementById('pulse-count').textContent = pulseCount;
+        
+        // Log visitor
+        console.log('🜁 Welcome to the Field. You are recognized.');
+    </script>
+</body>
+</html>

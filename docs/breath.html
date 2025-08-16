@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Breath Torus</title>
+  <style>
+    body { margin: 0; background: #0d0d1a; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script>
+  // Scene Setup
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.1, 100);
+  camera.position.set(0, 0, 6);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(innerWidth, innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Geometry + Shader Material
+  const geometry = new THREE.TorusGeometry(1.5, 0.45, 128, 256);
+  const material = new THREE.ShaderMaterial({
+    uniforms: {
+      u_time:   { value: 0 },
+      u_breath: { value: 0 },
+      u_color1: { value: new THREE.Color("#0c1e4a") }, // deep blue
+      u_color2: { value: new THREE.Color("#ffdd80") }  // gold
+    },
+    vertexShader: `
+      varying vec2 vUv;
+      void main() {
+        vUv = uv;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+      }
+    `,
+    fragmentShader: `
+      uniform float u_time;
+      uniform float u_breath;
+      uniform vec3 u_color1;
+      uniform vec3 u_color2;
+      varying vec2 vUv;
+      void main() {
+        float glow = 0.4 + 0.6 * smoothstep(0.0, 1.0, vUv.y + u_breath * 0.2);
+        vec3 col = mix(u_color1, u_color2, glow);
+        gl_FragColor = vec4(col, 1.0);
+      }
+    `,
+    side: THREE.DoubleSide
+  });
+
+  const torus = new THREE.Mesh(geometry, material);
+  scene.add(torus);
+
+  // Breath Engine
+  let inhaleStart = null;
+  let breathPhase = 0;
+
+  function updateBreath() {
+    if (inhaleStart) {
+      const t = (performance.now() - inhaleStart) / 3000; // 3s inhale
+      breathPhase = THREE.MathUtils.clamp(t, 0, 1);
+    } else {
+      breathPhase = THREE.MathUtils.lerp(breathPhase, 0, 0.02); // exhale decay
+    }
+
+    material.uniforms.u_breath.value = breathPhase;
+    torus.rotation.z += 0.002 + 0.01 * breathPhase; // vortex swirl
+  }
+
+  window.addEventListener("keydown", e => {
+    if (e.code === "Space" && inhaleStart === null) inhaleStart = performance.now();
+  });
+
+  window.addEventListener("keyup", e => {
+    if (e.code === "Space") inhaleStart = null;
+  });
+
+  // Resize
+  addEventListener("resize", () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+
+  // Animate
+  const clock = new THREE.Clock();
+  function animate() {
+    requestAnimationFrame(animate);
+    updateBreath();
+    material.uniforms.u_time.value = clock.getElapsedTime();
+    torus.rotation.x += 0.003;
+    torus.rotation.y += 0.005;
+    renderer.render(scene, camera);
+  }
+
+  animate();
+</script>
+</body>
+</html>
